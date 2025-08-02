@@ -5,8 +5,10 @@ import Image from "next/image";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
-const imageUrls = [
+const initialImageUrls = [
   { src: "https://placehold.co/600x600.png", hint: "rose pink" },
   { src: "https://placehold.co/600x600.png", hint: "petal blossom" },
   { src: "https://placehold.co/600x600.png", hint: "floral pattern" },
@@ -44,6 +46,20 @@ const Footer = () => {
 
 export default function Home() {
   const [columns, setColumns] = useState(4);
+  const [imageUrls, setImageUrls] = useState(initialImageUrls);
+  const [urlsInput, setUrlsInput] = useState(
+    initialImageUrls.map((img) => img.src).join(",\n")
+  );
+
+  const handleUpdateUrls = () => {
+    const urls = urlsInput
+      .split(/[\n,]+/)
+      .map((url) => url.trim())
+      .filter((url) => url)
+      .map((url) => ({ src: url, hint: "custom image" }));
+    setImageUrls(urls);
+  };
+
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
@@ -81,6 +97,22 @@ export default function Home() {
                   onValueChange={(value) => setColumns(value[0])}
                   aria-label="Number of columns"
                 />
+              </div>
+
+              <div className="grid gap-2 mt-4">
+                <Label htmlFor="image-urls" className="text-base font-medium">
+                  Image URLs
+                </Label>
+                <Textarea
+                  id="image-urls"
+                  placeholder="Enter image URLs, separated by commas or new lines"
+                  value={urlsInput}
+                  onChange={(e) => setUrlsInput(e.target.value)}
+                  className="h-32"
+                />
+                <Button onClick={handleUpdateUrls} className="mt-2">
+                  Update Grid
+                </Button>
               </div>
             </div>
           </Card>
