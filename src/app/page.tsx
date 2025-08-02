@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Sun, Moon } from "lucide-react";
 
 const initialImageUrls = [
   { src: "https://placehold.co/600x600.png", hint: "rose pink" },
@@ -44,6 +46,36 @@ const Footer = () => {
   );
 };
 
+const ThemeToggle = () => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const isDark = document.documentElement.classList.contains("dark");
+    setIsDarkMode(isDark);
+  }, []);
+
+  const toggleTheme = (checked: boolean) => {
+    if (checked) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    setIsDarkMode(checked);
+  };
+
+  return (
+    <div className="flex items-center space-x-2">
+      <Sun className="h-5 w-5" />
+      <Switch
+        id="theme-toggle"
+        checked={isDarkMode}
+        onCheckedChange={toggleTheme}
+      />
+      <Moon className="h-5 w-5" />
+    </div>
+  );
+};
+
 export default function Home() {
   const [columns, setColumns] = useState(4);
   const [imageUrls, setImageUrls] = useState(initialImageUrls);
@@ -64,13 +96,16 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
       <div className="container mx-auto px-4 py-8">
-        <header className="text-center mb-10">
+        <header className="text-center mb-10 relative">
           <h1 className="text-5xl font-headline font-extrabold tracking-tight text-primary sm:text-6xl md:text-7xl">
             Rose Grid
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
             A clean and minimalist viewer for your favorite images.
           </p>
+          <div className="absolute top-0 right-0">
+            <ThemeToggle />
+          </div>
         </header>
 
         <main>
