@@ -125,15 +125,16 @@ export default function Home() {
     const zip = new JSZip();
     const imagePromises = imageUrls.map(async (image, index) => {
       try {
-        const response = await fetch(image.src);
+        const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(image.src)}`);
         if (!response.ok) {
           console.error(`Failed to fetch ${image.src}: ${response.statusText}`);
           return;
         }
         const blob = await response.blob();
-        let filename = image.src.substring(image.src.lastIndexOf('/') + 1);
-        if (!filename.includes('.')) {
-          filename = `${filename}.jpg`;
+        let filename = image.src.substring(image.src.lastIndexOf('/') + 1).split('?')[0];
+        if (!filename || !filename.includes('.')) {
+          const extension = blob.type.split('/')[1] || 'jpg';
+          filename = `image_${index + 1}.${extension}`;
         }
         zip.file(filename, blob);
       } catch (error) {
@@ -241,10 +242,8 @@ export default function Home() {
                   />
                 </div>
                 <a
-                  href={image.src}
+                  href={`/api/image-proxy?url=${encodeURIComponent(image.src)}&download=true`}
                   download
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="absolute bottom-2 right-2 bg-primary text-primary-foreground p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex items-center justify-center"
                   aria-label="Download image"
                 >
