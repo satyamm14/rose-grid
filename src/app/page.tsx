@@ -8,7 +8,9 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, Download } from "lucide-react";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 
 const initialImageUrls = [
   { src: "https://placehold.co/600x600.png", hint: "rose pink" },
@@ -29,15 +31,28 @@ const initialImageUrls = [
   { src: "https://placehold.co/600x600.png", hint: "rose petals" },
 ];
 
-const Footer = () => {
+const Footer = ({ onDownloadAll }: { onDownloadAll: () => void }) => {
   const [year, setYear] = useState<number | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     setYear(new Date().getFullYear());
   }, []);
 
+  const handleDownloadClick = async () => {
+    setIsDownloading(true);
+    await onDownloadAll();
+    setIsDownloading(false);
+  };
+
   return (
     <footer className="text-center mt-16 text-muted-foreground text-sm">
+      <div className="mb-4">
+        <Button onClick={handleDownloadClick} disabled={isDownloading}>
+          <Download className="mr-2 h-4 w-4" />
+          {isDownloading ? "Downloading..." : "Download All as ZIP"}
+        </Button>
+      </div>
       <p>
         {year && `© ${year} `}Rose Grid. Created for a beautiful web
         experience.
@@ -92,6 +107,32 @@ export default function Home() {
     setImageUrls(urls);
   };
 
+  const handleDownloadAll = async () => {
+    const zip = new JSZip();
+    const imagePromises = imageUrls.map(async (image, index) => {
+      try {
+        const response = await fetch(image.src);
+        if (!response.ok) {
+          console.error(`Failed to fetch ${image.src}: ${response.statusText}`);
+          return;
+        }
+        const blob = await response.blob();
+        let filename = image.src.substring(image.src.lastIndexOf('/') + 1);
+        if (!filename.includes('.')) {
+          filename = `${filename}.jpg`;
+        }
+        zip.file(filename, blob);
+      } catch (error) {
+        console.error(`Error downloading ${image.src}:`, error);
+      }
+    });
+
+    await Promise.all(imagePromises);
+
+    zip.generateAsync({ type: "blob" }).then((content) => {
+      saveAs(content, "rose-grid-images.zip");
+    });
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
@@ -136,7 +177,7 @@ export default function Home() {
 
               <div className="grid gap-2 mt-4">
                 <Label htmlFor="image-urls" className="text-base font-medium">
-                  Image URLs
+                  Image URLs ({imageUrls.length} images)
                 </Label>
                 <Textarea
                   id="image-urls"
@@ -161,7 +202,7 @@ export default function Home() {
             {imageUrls.map((image, index) => (
               <Card
                 key={index}
-                className="overflow-hidden rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out border-border/30 group"
+                className="overflow-hidden rounded-xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out border-border/30 group relative"
               >
                 <div className="aspect-square relative">
                   <Image
@@ -173,12 +214,22 @@ export default function Home() {
                     sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   />
                 </div>
+                <a
+                  href={image.src}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute bottom-2 right-2 bg-primary text-primary-foreground p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex items-center justify-center"
+                  aria-label="Download image"
+                >
+                  <Download className="h-5 w-5" />
+                </a>
               </Card>
             ))}
           </div>
         </main>
 
-        <Footer />
+        <Footer onDownloadAll={handleDownloadAll} />
       </div>
     </div>
   );
