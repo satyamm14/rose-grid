@@ -11,6 +11,8 @@ import { Switch } from "@/components/ui/switch";
 import { Sun, Moon, Download } from "lucide-react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Terminal } from "lucide-react";
 
 const initialImageUrls = [
   { src: "https://placehold.co/600x600.png", hint: "rose pink" },
@@ -97,14 +99,26 @@ export default function Home() {
   const [urlsInput, setUrlsInput] = useState(
     initialImageUrls.map((img) => img.src).join(",\n")
   );
+  const [duplicateInfo, setDuplicateInfo] = useState<{count: number, total: number} | null>(null);
 
   const handleUpdateUrls = () => {
-    const urls = urlsInput
+    const allUrls = urlsInput
       .split(/[\n,]+/)
       .map((url) => url.trim())
-      .filter((url) => url)
-      .map((url) => ({ src: url, hint: "custom image" }));
-    setImageUrls(urls);
+      .filter((url) => url);
+    
+    const uniqueUrls = [...new Set(allUrls)];
+    const duplicateCount = allUrls.length - uniqueUrls.length;
+
+    if (duplicateCount > 0) {
+        setDuplicateInfo({count: duplicateCount, total: allUrls.length});
+    } else {
+        setDuplicateInfo(null);
+    }
+
+    const newImageUrls = uniqueUrls.map((url) => ({ src: url, hint: "custom image" }));
+    setImageUrls(newImageUrls);
+    setUrlsInput(uniqueUrls.join(",\n"));
   };
 
   const handleDownloadAll = async () => {
@@ -183,9 +197,21 @@ export default function Home() {
                   id="image-urls"
                   placeholder="Enter image URLs, separated by commas or new lines"
                   value={urlsInput}
-                  onChange={(e) => setUrlsInput(e.target.value)}
+                  onChange={(e) => {
+                    setUrlsInput(e.target.value);
+                    setDuplicateInfo(null);
+                  }}
                   className="h-32"
                 />
+                 {duplicateInfo && (
+                  <Alert>
+                    <Terminal className="h-4 w-4" />
+                    <AlertTitle>Duplicate URLs found!</AlertTitle>
+                    <AlertDescription>
+                      {duplicateInfo.count} out of {duplicateInfo.total} URLs were duplicates and have been removed.
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <Button onClick={handleUpdateUrls} className="mt-2">
                   Update Grid
                 </Button>
