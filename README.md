@@ -2,7 +2,7 @@
 
 Rose Grid is a clean, minimalist, and highly customizable image grid viewer. It allows you to dynamically create beautiful image galleries from a list of URLs, with controls for layout, theming, and more.
 
-## ✨ Features
+## Features
 
 - **Dynamic Grid Layout**: Easily adjust the number of columns in the grid with a simple slider.
 - **Custom Image Sources**: Paste in a list of image URLs (separated by commas or newlines) to create your own custom grid.
